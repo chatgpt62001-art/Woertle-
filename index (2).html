@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoGenius – Länder-Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --paper: #fdfaf4;
+    --ink: #1a1a2e;
+    --muted: #8a8070;
+    --accent: #c0392b;
+    --gold: #b8860b;
+    --correct: #2e7d4f;
+    --wrong: #c0392b;
+    --border: #d4cbb8;
+    --shadow: rgba(26,26,46,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Lato', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(180,165,140,0.08) 28px, rgba(180,165,140,0.08) 29px),
+      radial-gradient(ellipse at 10% 20%, rgba(184,134,11,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(192,57,43,0.04) 0%, transparent 50%);
+  }
+
+  /* Header */
+  header {
+    width: 100%;
+    max-width: 720px;
+    padding: 32px 24px 20px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+  }
+
+  .logo-wrap { display: flex; flex-direction: column; gap: 2px; }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 2.6rem;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .tagline {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    padding-bottom: 4px;
+  }
+
+  .stat { text-align: right; }
+  .stat-n {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-n.gold { color: var(--gold); }
+  .stat-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+
+  /* Main content */
+  .main {
+    width: 100%;
+    max-width: 720px;
+    padding: 28px 24px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Country card */
+  .country-card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    box-shadow: 4px 4px 0 var(--border), 8px 8px 0 rgba(180,165,140,0.3);
+    padding: 28px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .country-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--ink);
+  }
+
+  .card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  .country-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .country-flag {
+    font-size: 3.5rem;
+    position: absolute;
+    right: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.15));
+  }
+
+  .country-hint {
+    margin-top: 8px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .progress-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* Facts section */
+  .facts-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .facts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fact-item {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: 2px 2px 0 var(--border);
+    position: relative;
+    user-select: none;
+  }
+
+  .fact-item:hover:not(.disabled) {
+    border-color: var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    transform: translate(-1px, -1px);
+  }
+
+  .fact-item:active:not(.disabled) {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--border);
+  }
+
+  .fact-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--muted);
+    min-width: 20px;
+    line-height: 1.4;
+    transition: color 0.2s;
+  }
+
+  .fact-text {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--ink);
+    font-weight: 300;
+  }
+
+  .fact-badge {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  /* Fact states */
+  .fact-item.correct {
+    background: #edf7f1;
+    border-color: var(--correct);
+    box-shadow: 2px 2px 0 var(--correct);
+  }
+  .fact-item.correct .fact-num { color: var(--correct); }
+  .fact-item.correct .fact-badge { opacity: 1; }
+
+  .fact-item.wrong {
+    background: #fdf0ee;
+    border-color: var(--wrong);
+    box-shadow: 2px 2px 0 var(--wrong);
+    animation: jolt 0.35s ease;
+  }
+  .fact-item.wrong .fact-num { color: var(--wrong); }
+  .fact-item.wrong .fact-badge { opacity: 1; }
+
+  .fact-item.reveal {
+    background: #edf7f1;
+    border-color: var(--correct);
+    box-shadow: 2px 2px 0 var(--correct);
+    opacity: 0.7;
+  }
+  .fact-item.reveal .fact-num { color: var(--correct); }
+  .fact-item.reveal .fact-badge { opacity: 1; }
+
+  .fact-item.disabled { cursor: default; }
+
+  @keyframes jolt {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  /* Result bar */
+  .result-bar {
+    display: none;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px 24px;
+    box-shadow: 3px 3px 0 var(--border);
+    text-align: center;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .result-bar.show { display: flex; }
+
+  .result-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .result-text.win { color: var(--correct); }
+  .result-text.lose { color: var(--wrong); }
+
+  .next-btn {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 12px 36px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+    box-shadow: 3px 3px 0 var(--muted);
+  }
+
+  .next-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--muted);
+  }
+
+  .next-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--muted);
+  }
+
+  /* Score pills */
+  .score-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .score-pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .score-pill.good { background: #d4edda; color: var(--correct); }
+  .score-pill.bad { background: #f8d7da; color: var(--wrong); }
+  .score-pill.streak { background: #fff3cd; color: var(--gold); }
+
+  /* Attempts display */
+  .attempts {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .attempt-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    transition: background 0.2s;
+  }
+
+  .attempt-dot.used { background: var(--wrong); border-color: var(--wrong); }
+
+  /* Animated entry */
+  .fade-in {
+    animation: fadeSlide 0.4s ease forwards;
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 480px) {
+    .logo { font-size: 1.9rem; }
+    .country-name { font-size: 2rem; }
+    .country-flag { font-size: 2.5rem; }
+    .country-card { padding: 20px; }
+    header { padding: 20px 16px 16px; }
+    .main { padding: 20px 16px 32px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo">Geo<span>Genius</span></div>
+    <div class="tagline">Länder · Fakten · Quiz</div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-n" id="statCorrect">0</div>
+      <div class="stat-label">Richtig</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n gold" id="statStreak">0</div>
+      <div class="stat-label">🔥 Serie</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" id="statTotal">0</div>
+      <div class="stat-label">Gespielt</div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <div class="country-card fade-in" id="countryCard">
+    <div class="card-label">Welchem Fakt gehört dieses Land?</div>
+    <div class="country-name" id="countryName">–</div>
+    <div class="country-flag" id="countryFlag"></div>
+    <div class="country-hint" id="countryHint"></div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">Fortschritt</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="attempts" id="attemptsDisplay"></div>
+  </div>
+
+  <div class="facts-title">Wähle den richtigen Fakt:</div>
+  <div class="facts-list" id="factsList"></div>
+
+  <div class="result-bar" id="resultBar">
+    <div class="result-text" id="resultText"></div>
+    <div class="score-row" id="scoreRow"></div>
+    <button class="next-btn" onclick="nextRound()">Nächstes Land →</button>
+  </div>
+</div>
+
+<script>
+// ── Data: Countries with facts ─────────────────────────────────────────────
+const COUNTRIES = [
+  {
+    name: "Japan", flag: "🇯🇵", hint: "Inselstaat in Ostasien",
+    facts: [
+      "Die Hauptstadt Tokio ist mit über 37 Millionen Einwohnern die größte Metropolregion der Welt.",
+      "Japan hat mit dem Shinkansen eines der schnellsten Eisenbahnsysteme der Welt, das Züge mit bis zu 320 km/h befördert.",
+      "Der Fuji ist mit 3.776 Metern der höchste Berg des Landes und gilt als heilig.",
+      "Japan ist der weltweit größte Produzent von Manga-Comics und Anime-Serien.",
+      "Das Land hat mehr als 6.800 Inseln und liegt im sogenannten Pazifischen Feuerring."
+    ]
+  },
+  {
+    name: "Brasilien", flag: "🇧🇷", hint: "Größtes Land Südamerikas",
+    facts: [
+      "Der Amazonas, der größte Regenwald der Welt, bedeckt etwa 60 % des Landes.",
+      "Brasilien ist das einzige portugiesischsprachige Land in Südamerika.",
+      "Das Land hat fünfmal die Fußball-Weltmeisterschaft gewonnen – mehr als jedes andere Land.",
+      "Die Hauptstadt ist nicht São Paulo oder Rio de Janeiro, sondern Brasília, das erst 1960 gegründet wurde.",
+      "Der Karneval in Rio de Janeiro gilt als das größte Fest der Welt mit bis zu zwei Millionen Besuchern täglich."
+    ]
+  },
+  {
+    name: "Australien", flag: "🇦🇺", hint: "Einziges Land, das einen ganzen Kontinent einnimmt",
+    facts: [
+      "Australien ist der einzige Kontinent, der vollständig von einem einzigen Land regiert wird.",
+      "Das Great Barrier Reef vor der Küste Queenslands ist das größte Korallenriff der Welt.",
+      "In Australien leben mehr Kängurus als Menschen – schätzungsweise 50 Millionen Tiere.",
+      "Der Ayers Rock, offiziell Uluru genannt, ist ein heiliger Ort der Aborigines und 348 Meter hoch.",
+      "Sydney ist zwar die größte Stadt, aber Canberra ist die Hauptstadt des Landes."
+    ]
+  },
+  {
+    name: "Ägypten", flag: "🇪🇬", hint: "Heimat der Pharaonen",
+    facts: [
+      "Die Pyramiden von Gizeh sind das einzige noch erhaltene der sieben Weltwunder der Antike.",
+      "Der Nil ist mit über 6.650 Kilometern der längste Fluss der Welt.",
+      "Mehr als 90 % der Bevölkerung leben in unmittelbarer Nähe des Nils.",
+      "Das Land verbindet als einziges sowohl Afrika als auch Asien über die Sinai-Halbinsel.",
+      "Kairo ist mit über 20 Millionen Einwohnern die bevölkerungsreichste Stadt Afrikas."
+    ]
+  },
+  {
+    name: "Kanada", flag: "🇨🇦", hint: "Zweitgrößtes Land der Welt nach Fläche",
+    facts: [
+      "Kanada ist mit einer Fläche von fast 10 Millionen Quadratkilometern das zweitgrößte Land der Welt.",
+      "Das Land hat die längste Küstenlinie aller Länder – über 202.000 Kilometer.",
+      "Kanada besitzt mehr Seen als alle anderen Länder zusammen, darunter über 2 Millionen.",
+      "Das Land hat zwei offizielle Amtssprachen: Englisch und Französisch.",
+      "Der CN Tower in Toronto war von 1976 bis 2007 das höchste freistehende Bauwerk der Welt."
+    ]
+  },
+  {
+    name: "Indien", flag: "🇮🇳", hint: "Bevölkerungsreichstes Land der Welt",
+    facts: [
+      "Indien ist mit über 1,4 Milliarden Einwohnern das bevölkerungsreichste Land der Welt.",
+      "Das Schachspiel wurde in Indien erfunden und ist mehr als 1.500 Jahre alt.",
+      "Die Bollywood-Filmindustrie in Mumbai produziert mehr Filme pro Jahr als Hollywood.",
+      "Das Taj Mahal in Agra wurde von Kaiser Shah Jahan als Grabmal für seine verstorbene Frau erbaut.",
+      "Indien hat die größte Anzahl an Vegetariern weltweit – etwa 30 % der Bevölkerung."
+    ]
+  },
+  {
+    name: "Island", flag: "🇮🇸", hint: "Insel im Nordatlantik",
+    facts: [
+      "Island ist das Land mit der ältesten Demokratie der Welt – das Althing wurde 930 n. Chr. gegründet.",
+      "Etwa 85 % des Energiebedarfs Islands werden durch erneuerbare Energien aus Geothermie und Wasserkraft gedeckt.",
+      "Island hat mehr Vulkane als jedes andere bewohnte Land – insgesamt über 130.",
+      "Die Hauptstadt Reykjavík ist die nördlichste Hauptstadt eines souveränen Staates weltweit.",
+      "In Island gibt es keine Mücken – das Klima ist zu kalt und wechselhaft für ihre Entwicklung."
+    ]
+  },
+  {
+    name: "China", flag: "🇨🇳", hint: "Bevölkerungsreichster Staat seit Jahrtausenden",
+    facts: [
+      "Die Chinesische Mauer ist über 21.000 Kilometer lang und ist das längste von Menschenhand gebaute Bauwerk der Welt.",
+      "China ist das Heimatland von Papier, Buchdruck, Schießpulver und dem Kompass – vier der wichtigsten Erfindungen der Geschichte.",
+      "Der Jangtse ist mit 6.380 Kilometern der längste Fluss Asiens und der drittlängste der Welt.",
+      "China hat 56 offiziell anerkannte ethnische Gruppen, wobei die Han-Chinesen rund 92 % ausmachen.",
+      "Die Verbotene Stadt in Peking besteht aus 980 Gebäuden und war fast 500 Jahre lang Kaiserpalast."
+    ]
+  },
+  {
+    name: "Norwegen", flag: "🇳🇴", hint: "Land der Fjorde und Mitternachtssonne",
+    facts: [
+      "Norwegen hat die meisten Fjorde der Welt – sie entstanden durch Gletschererosion während der Eiszeit.",
+      "Das Land ist der weltweit größte Exporteur von Lachs und einer der führenden Produzenten von Öl und Gas.",
+      "Norwegen war das erste Land, das Elektroautos mit mehr als 50 % Marktanteil führte.",
+      "In Teilen Nordnorwegens geht die Sonne im Sommer über zwei Monate lang nicht unter – Mitternachtssonne.",
+      "Norwegen verwaltet den größten Staatsfonds der Welt mit einem Wert von über 1,4 Billionen Dollar."
+    ]
+  },
+  {
+    name: "Mexiko", flag: "🇲🇽", hint: "Land der Maya und Azteken",
+    facts: [
+      "Mexiko-Stadt ist eine der am schnellsten sinkenden Städte der Welt – sie sinkt jedes Jahr um bis zu 20 cm.",
+      "Mexiko ist der Ursprungsort von Schokolade, Avocado, Tomaten und Chili.",
+      "Das Land hat mehr UNESCO-Weltkulturerbestätten als jedes andere in Amerika.",
+      "In Mexiko befinden sich die größte Pyramide der Welt – die Pyramide von Cholula – nach Volumen.",
+      "Mexiko hat mit Spanisch als einziger Amtssprache die größte spanischsprachige Bevölkerung weltweit."
+    ]
+  },
+  {
+    name: "Russland", flag: "🇷🇺", hint: "Größtes Land der Welt",
+    facts: [
+      "Russland ist mit fast 17,1 Millionen Quadratkilometern das größte Land der Welt – größer als Pluto.",
+      "Der Baikalsee in Sibirien enthält rund 20 % des weltweiten Süßwasservorrats.",
+      "Russland hat elf Zeitzonen – das bedeutet, wenn in Moskau Morgen ist, ist es im Osten schon Nacht.",
+      "Die Transsibirische Eisenbahn ist mit 9.289 Kilometern die längste Eisenbahnstrecke der Welt.",
+      "Russland war das erste Land, einen Menschen – Juri Gagarin 1961 – in den Weltraum zu schicken."
+    ]
+  },
+  {
+    name: "Kenia", flag: "🇰🇪", hint: "Ostafrikanisches Land am Äquator",
+    facts: [
+      "Kenia liegt genau auf dem Äquator und beherbergt sowohl tropischen Regenwald als auch Wüste.",
+      "Der Marathonlauf ist in Kenia eine Nationaldisziplin – kenianische Läufer dominieren seit Jahrzehnten die Weltranglisten.",
+      "Die Masai Mara ist Schauplatz der größten Tierwanderung der Welt – der Gnuwanderung mit über 1,5 Millionen Tieren.",
+      "Nairobi ist die einzige Hauptstadt der Welt mit einem Nationalpark innerhalb der Stadtgrenzen.",
+      "Kenia hat über 40 verschiedene ethnische Gruppen, darunter Kikuyu, Luo und Masai."
+    ]
+  },
+  {
+    name: "Schweiz", flag: "🇨🇭", hint: "Alpenland im Herzen Europas",
+    facts: [
+      "Die Schweiz hat vier Amtssprachen: Deutsch, Französisch, Italienisch und Rätoromanisch.",
+      "Das Land ist bekannt für seine direkte Demokratie – Bürger können über Gesetze durch Volksabstimmungen entscheiden.",
+      "Die Schweiz ist seit 1815 dauerhaft neutral und hat an keinem Weltkrieg teilgenommen.",
+      "Das Rote Kreuz wurde 1863 in Genf von Henri Dunant gegründet – Symbol und Name sind der Schweizer Flagge nachempfunden.",
+      "Die Schweiz produziert jährlich über 180.000 Tonnen Schokolade und ist weltbekannt für ihre Uhrenindustrie."
+    ]
+  },
+  {
+    name: "Peru", flag: "🇵🇪", hint: "Heimat von Machu Picchu",
+    facts: [
+      "Machu Picchu, die antike Inkastadt auf 2.430 Metern Höhe, gilt als eines der Neuen Sieben Weltwunder.",
+      "Der Titicacasee an der Grenze zu Bolivien ist der höchstgelegene schiffbare See der Welt.",
+      "Peru ist nach Brasilien und Kolumbien das drittgrößte Land Südamerikas.",
+      "Die Kartoffel wurde in Peru domestiziert – es gibt dort über 3.000 verschiedene Sorten.",
+      "Der Amazonas entspringt in den peruanischen Anden und nicht in Brasilien."
+    ]
+  },
+  {
+    name: "Griechenland", flag: "🇬🇷", hint: "Wiege der westlichen Zivilisation",
+    facts: [
+      "Griechenland ist die Wiege der Demokratie – Athen führte die erste bekannte demokratische Regierung um 507 v. Chr. ein.",
+      "Das Land besteht aus über 2.000 Inseln, von denen etwa 170 bewohnt sind.",
+      "Die Olympischen Spiele der Antike wurden ab 776 v. Chr. in Olympia abgehalten – zu Ehren des Gottes Zeus.",
+      "Griechenland hat mehr archäologische Museen als jedes andere Land der Welt.",
+      "Der griechische Alphabet ist die Grundlage fast aller europäischen Schriftsysteme."
+    ]
+  },
+  {
+    name: "Saudi-Arabien", flag: "🇸🇦", hint: "Größtes Land der arabischen Halbinsel",
+    facts: [
+      "Saudi-Arabien besitzt rund 17 % der weltweiten nachgewiesenen Erdölreserven.",
+      "Das Land beherbergt die zwei heiligsten Stätten des Islam: Mekka und Medina.",
+      "Rund 95 % der Fläche Saudi-Arabiens bestehen aus Wüste, darunter die Rub al-Chali, die größte Sandwüste der Welt.",
+      "Saudi-Arabien hat keine dauerhaften Flüsse oder Seen – Wasser wird fast ausschließlich durch Meerwasserentsalzung gewonnen.",
+      "Das Königreich wurde erst 1932 von König Abd al-Aziz ibn Saud geeint und gegründet."
+    ]
+  },
+  {
+    name: "Neuseeland", flag: "🇳🇿", hint: "Inselstaat im Südpazifik",
+    facts: [
+      "Neuseeland war das erste Land der Welt, das Frauen das Wahlrecht gewährte – bereits im Jahr 1893.",
+      "Die Maori, die Ureinwohner Neuseelands, siedelten dort erst vor etwa 700 Jahren.",
+      "Neuseeland hat mehr Schafe als Menschen – etwa fünf Schafe pro Einwohner.",
+      "Die Filmreihe 'Herr der Ringe' wurde vollständig in Neuseeland gedreht – das Land wird seitdem als 'Mittelerde' vermarktet.",
+      "Neuseeland liegt auf dem Pazifischen Feuerring und hat über 50 aktive Vulkane."
+    ]
+  },
+  {
+    name: "Türkei", flag: "🇹🇷", hint: "Brücke zwischen Europa und Asien",
+    facts: [
+      "Die Türkei ist das einzige Land der Welt, dessen Gebiet auf zwei Kontinenten liegt – Europa und Asien.",
+      "Istanbul war früher als Konstantinopel bekannt und war die Hauptstadt des Byzantinischen und Osmanischen Reichs.",
+      "Das Land ist der weltgrößte Produzent von Haselnüssen, Kirschen und Feigen.",
+      "Die Türkei ist Heimat einiger der ältesten Städte der Welt, darunter Çatalhöyük aus dem Jahr 7500 v. Chr.",
+      "Tulpen stammen ursprünglich aus der Türkei und wurden erst im 16. Jahrhundert nach Europa gebracht."
+    ]
+  },
+  {
+    name: "Argentinien", flag: "🇦🇷", hint: "Land des Tangos",
+    facts: [
+      "Argentinien hat die längste Ausdehnung von Nord nach Süd in Amerika – über 3.700 Kilometer.",
+      "Der Tango, eines der bekanntesten Musikgenres und Tänze der Welt, entstand in den Armenvierteln Buenos Aires.",
+      "Die Iguazú-Wasserfälle an der Grenze zu Brasilien sind breiter als die Niagarafälle.",
+      "Argentinien hat zweimal die Fußball-Weltmeisterschaft gewonnen – 1978 und 1986.",
+      "Die Pampas Argentiniens gehören zu den fruchtbarsten Ackerböden der Welt."
+    ]
+  },
+  {
+    name: "Südafrika", flag: "🇿🇦", hint: "Regenbogennation am Kap der Guten Hoffnung",
+    facts: [
+      "Südafrika ist das einzige Land der Welt mit drei Hauptstädten: Pretoria, Kapstadt und Bloemfontein.",
+      "Das Land hat elf offizielle Amtssprachen – mehr als jedes andere Land Afrikas.",
+      "Südafrika beherbergt rund 80 % der weltweiten Platinreserven.",
+      "Nelson Mandela verbrachte 27 Jahre im Gefängnis, bevor er 1994 zum ersten demokratisch gewählten Präsidenten wurde.",
+      "Der Krüger-Nationalpark ist einer der größten Nationalparks Afrikas und beherbergt die 'Big Five'."
+    ]
+  }
+];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let currentCountry = null;
+let correctFact = null;
+let allFacts = [];
+let maxAttempts = 3;
+let attemptsLeft = maxAttempts;
+let answered = false;
+let stats = { correct: 0, total: 0, streak: 0 };
+let usedCountryIndices = [];
+
+// Load stats
+try {
+  const s = JSON.parse(localStorage.getItem('geogenius_stats') || '{}');
+  stats = { correct: s.correct||0, total: s.total||0, streak: s.streak||0 };
+} catch(e) {}
+
+// ── DOM refs ───────────────────────────────────────────────────────────────
+const countryNameEl = document.getElementById('countryName');
+const countryFlagEl = document.getElementById('countryFlag');
+const countryHintEl = document.getElementById('countryHint');
+const factsListEl   = document.getElementById('factsList');
+const resultBar     = document.getElementById('resultBar');
+const resultText    = document.getElementById('resultText');
+const scoreRow      = document.getElementById('scoreRow');
+const progressFill  = document.getElementById('progressFill');
+const attemptsDisp  = document.getElementById('attemptsDisplay');
+const statCorrectEl = document.getElementById('statCorrect');
+const statStreakEl  = document.getElementById('statStreak');
+const statTotalEl   = document.getElementById('statTotal');
+
+// ── Pick random items from array ───────────────────────────────────────────
+function pickRandom(arr, n) {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, n);
+}
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+// ── Build a round ──────────────────────────────────────────────────────────
+function buildRound() {
+  // Pick country
+  if (usedCountryIndices.length >= COUNTRIES.length) usedCountryIndices = [];
+  let idx;
+  do { idx = Math.floor(Math.random() * COUNTRIES.length); }
+  while (usedCountryIndices.includes(idx));
+  usedCountryIndices.push(idx);
+
+  currentCountry = COUNTRIES[idx];
+
+  // Pick correct fact (random one of the 5)
+  correctFact = currentCountry.facts[Math.floor(Math.random() * currentCountry.facts.length)];
+
+  // Pick 4 distractor facts from OTHER countries
+  const otherCountries = COUNTRIES.filter((_, i) => i !== idx);
+  const distractors = [];
+  const shuffledOthers = shuffle(otherCountries);
+  for (const c of shuffledOthers) {
+    if (distractors.length >= 4) break;
+    const f = c.facts[Math.floor(Math.random() * c.facts.length)];
+    distractors.push(f);
+  }
+
+  // Combine and shuffle
+  allFacts = shuffle([correctFact, ...distractors]);
+
+  attemptsLeft = maxAttempts;
+  answered = false;
+}
+
+// ── Render round ───────────────────────────────────────────────────────────
+function renderRound() {
+  // Country card
+  countryNameEl.textContent = currentCountry.name;
+  countryFlagEl.textContent = currentCountry.flag;
+  countryHintEl.textContent = currentCountry.hint;
+
+  // Animate card
+  const card = document.getElementById('countryCard');
+  card.classList.remove('fade-in');
+  void card.offsetWidth;
+  card.classList.add('fade-in');
+
+  // Progress
+  progressFill.style.width = '0%';
+
+  // Attempts dots
+  renderAttempts();
+
+  // Facts
+  factsListEl.innerHTML = '';
+  allFacts.forEach((fact, i) => {
+    const item = document.createElement('div');
+    item.classList.add('fact-item');
+    item.style.animationDelay = `${i * 0.06}s`;
+    item.classList.add('fade-in');
+    item.innerHTML = `
+      <div class="fact-num">${i + 1}</div>
+      <div class="fact-text">${fact}</div>
+      <div class="fact-badge" id="badge-${i}"></div>
+    `;
+    item.addEventListener('click', () => handleFactClick(fact, item, i));
+    factsListEl.appendChild(item);
+  });
+
+  // Hide result
+  resultBar.classList.remove('show');
+  updateStatsDisplay();
+}
+
+function renderAttempts() {
+  attemptsDisp.innerHTML = '';
+  for (let i = 0; i < maxAttempts; i++) {
+    const dot = document.createElement('div');
+    dot.classList.add('attempt-dot');
+    if (i >= attemptsLeft) dot.classList.add('used');
+    attemptsDisp.appendChild(dot);
+  }
+}
+
+// ── Handle click ───────────────────────────────────────────────────────────
+function handleFactClick(fact, item, idx) {
+  if (answered || item.classList.contains('disabled')) return;
+
+  if (fact === correctFact) {
+    // Correct!
+    item.classList.add('correct', 'disabled');
+    document.getElementById(`badge-${idx}`).textContent = '✓';
+
+    // Disable all others
+    disableAll();
+
+    answered = true;
+    const firstTry = attemptsLeft === maxAttempts;
+    stats.correct++;
+    stats.total++;
+    stats.streak++;
+    saveStats();
+
+    progressFill.style.width = '100%';
+
+    showResult(true, firstTry);
+    updateStatsDisplay();
+  } else {
+    // Wrong
+    item.classList.add('wrong');
+    document.getElementById(`badge-${idx}`).textContent = '✗';
+    item.classList.add('disabled');
+
+    attemptsLeft--;
+    renderAttempts();
+    progressFill.style.width = `${((maxAttempts - attemptsLeft) / maxAttempts) * 100}%`;
+
+    setTimeout(() => item.classList.remove('wrong'), 400);
+
+    if (attemptsLeft <= 0) {
+      // Reveal correct
+      answered = true;
+      disableAll();
+      revealCorrect();
+
+      stats.total++;
+      stats.streak = 0;
+      saveStats();
+
+      showResult(false, false);
+      updateStatsDisplay();
+    }
+  }
+}
+
+function disableAll() {
+  factsListEl.querySelectorAll('.fact-item').forEach(el => el.classList.add('disabled'));
+}
+
+function revealCorrect() {
+  allFacts.forEach((fact, i) => {
+    if (fact === correctFact) {
+      const item = factsListEl.children[i];
+      item.classList.add('reveal');
+      document.getElementById(`badge-${i}`).textContent = '✓';
+    }
+  });
+}
+
+function showResult(won, firstTry) {
+  resultBar.classList.add('show');
+  if (won) {
+    resultText.textContent = firstTry ? '🎉 Auf Anhieb richtig!' : '✓ Richtig!';
+    resultText.className = 'result-text win';
+    scoreRow.innerHTML = `
+      <span class="score-pill good">+1 Punkt</span>
+      <span class="score-pill streak">🔥 ${stats.streak} Serie</span>
+    `;
+  } else {
+    resultText.textContent = `✗ Leider falsch! Das war ein Fakt über ${currentCountry.name}.`;
+    resultText.className = 'result-text lose';
+    scoreRow.innerHTML = `<span class="score-pill bad">Serie unterbrochen</span>`;
+  }
+}
+
+function updateStatsDisplay() {
+  statCorrectEl.textContent = stats.correct;
+  statStreakEl.textContent = stats.streak;
+  statTotalEl.textContent = stats.total;
+}
+
+function saveStats() {
+  try { localStorage.setItem('geogenius_stats', JSON.stringify(stats)); } catch(e) {}
+}
+
+function nextRound() {
+  buildRound();
+  renderRound();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+updateStatsDisplay();
+buildRound();
+renderRound();
+</script>
+</body>
+</html>
